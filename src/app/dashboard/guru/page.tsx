@@ -3,8 +3,8 @@ import Link from 'next/link';
 
 export default function DashboardGuru() {
   // Simulasi status dari database: 'belum_bayar', 'menunggu_admin', 'lunas'
-  const statusPembayaran = 'lunas'; 
-
+  const statusPembayaran: string = 'lunas';
+ 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-3xl font-bold text-kkgmiGreen mb-6">Dashboard Guru</h1>
