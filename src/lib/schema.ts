@@ -1,24 +1,26 @@
-import { sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
 export const Users = sqliteTable('Users', {
-  ID: text('ID').primaryKey(), // Diubah menjadi text sesuai Turso
-  Nama: text('Nama'), // Diubah dari Sekolah menjadi Nama
+  ID: integer('ID').primaryKey({ autoIncrement: true }),
   Username: text('Username').notNull().unique(),
   Password: text('Password').notNull(),
   Role: text('Role').notNull().default('guru'),
+  Sekolah: text('Sekolah'),
 });
 
 export const payments = sqliteTable('payments', {
-  id: text('id').primaryKey(),
-  guru_id: text('guru_id').references(() => Users.ID),
-  amount: text('amount').notNull(),
-  method: text('method'),
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  guru_id: integer('guru_id').references(() => Users.ID),
+  amount: integer('amount').notNull(),
+  method: text('method'), 
   status: text('status').notNull().default('pending'),
 });
 
+// Tabel students mungkin tidak lagi diperlukan jika siswa masuk ke tabel Users,
+// namun dibiarkan jika masih diperlukan untuk struktur data lain.
 export const students = sqliteTable('students', {
-  id: text('id').primaryKey(),
-  guru_id: text('guru_id').references(() => Users.ID),
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  guru_id: integer('guru_id').references(() => Users.ID),
   username_siswa: text('username_siswa').notNull(),
   password_siswa: text('password_siswa').notNull(),
   nama_siswa: text('nama_siswa').notNull(),
