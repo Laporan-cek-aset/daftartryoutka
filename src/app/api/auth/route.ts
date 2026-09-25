@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../../lib/turso';
-import { users } from '../../../../lib/schema';
+import { db } from '../../../lib/turso';
+import { users } from '../../../lib/schema';
 import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
