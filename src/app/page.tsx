@@ -8,7 +8,7 @@ export default function SinglePageApp() {
   const [authMode, setAuthMode] = useState('login'); // 'login', 'register'
   
   // State untuk menyimpan data user yang sedang login & status loading
-  const [activeUser, setActiveUser] = useState({ namaLembaga: '' });
+  const [activeUser, setActiveUser] = useState({ sekolah: '' });
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -31,13 +31,13 @@ export default function SinglePageApp() {
       const data = await res.json();
       
       if (data.success) {
-        setActiveUser({ namaLembaga: data.nama_lembaga });
+        setActiveUser({ sekolah: data.sekolah });
         setView(data.role === 'admin' ? 'admin' : 'guru');
       } else {
         setErrorMsg(data.message);
       }
     } catch (err) {
-      setErrorMsg('Gagal terhubung ke server.');
+      setErrorMsg('Gagal terhubung ke server database.');
     }
     setLoading(false);
   };
@@ -48,7 +48,7 @@ export default function SinglePageApp() {
     setLoading(true);
     setErrorMsg('');
 
-    const nama_lembaga = e.target.nama_lembaga.value;
+    const sekolah = e.target.sekolah.value;
     const username = e.target.username.value.toLowerCase();
     const password = e.target.password.value;
 
@@ -56,7 +56,7 @@ export default function SinglePageApp() {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', username, password, nama_lembaga })
+        body: JSON.stringify({ action: 'register', username, password, sekolah })
       });
       
       const data = await res.json();
@@ -68,14 +68,14 @@ export default function SinglePageApp() {
         setErrorMsg(data.message);
       }
     } catch (err) {
-      setErrorMsg('Gagal terhubung ke database.');
+      setErrorMsg('Gagal terhubung ke database. Pastikan koneksi Turso stabil.');
     }
     setLoading(false);
   };
 
   const handleLogout = () => {
     setView('landing');
-    setActiveUser({ namaLembaga: '' });
+    setActiveUser({ sekolah: '' });
   };
 
   // ==========================================
@@ -89,7 +89,7 @@ export default function SinglePageApp() {
           <div className="px-8 py-4 flex justify-between items-center max-w-7xl mx-auto">
             <h1 className="text-xl font-bold text-gray-800">Panel Guru</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500 hidden sm:block">Lembaga: <strong className="text-[#116530]">{activeUser.namaLembaga}</strong></span>
+              <span className="text-sm text-gray-500 hidden sm:block">Sekolah: <strong className="text-[#116530]">{activeUser.sekolah}</strong></span>
               <button onClick={handleLogout} className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 transition">Keluar</button>
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function SinglePageApp() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 overflow-hidden">
       
-      {/* BAGIAN KIRI: KONTEN PROMOSI EKSKLUSIF (Pindah ke Kiri) */}
+      {/* BAGIAN KIRI: KONTEN PROMOSI EKSKLUSIF */}
       <div className="flex-1 bg-gradient-to-br from-[#116530] to-[#0b421f] text-white p-10 md:p-20 flex flex-col justify-center relative">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#D4AF37] opacity-10 rounded-full blur-[100px]"></div>
         
@@ -193,7 +193,7 @@ export default function SinglePageApp() {
         </div>
       </div>
 
-      {/* BAGIAN KANAN: PANEL LOGIN / REGISTER (Pindah ke Kanan) */}
+      {/* BAGIAN KANAN: PANEL LOGIN / REGISTER */}
       <div className="w-full md:w-[450px] lg:w-[500px] bg-white shadow-2xl z-20 flex flex-col relative">
         <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
           
@@ -237,8 +237,8 @@ export default function SinglePageApp() {
               
               <form onSubmit={handleRegister} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nama Lembaga (Sesuai KKGMI)</label>
-                  <input type="text" name="nama_lembaga" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#116530] transition text-sm" />
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nama Sekolah (Sesuai KKGMI)</label>
+                  <input type="text" name="sekolah" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#116530] transition text-sm" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username Administrator</label>
