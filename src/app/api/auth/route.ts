@@ -1,27 +1,25 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/turso';
-import { users } from '../../../lib/schema';
+import { Users } from '../../../lib/schema';
 import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, username, password, nama_lembaga } = body;
+    const { action, username, password, sekolah } = body;
 
     // Logika Pendaftaran (Register)
     if (action === 'register') {
-      // Cek apakah username sudah ada di database
-      const existingUser = await db.select().from(users).where(eq(users.username, username));
+      const existingUser = await db.select().from(Users).where(eq(Users.Username, username));
       if (existingUser.length > 0) {
-        return NextResponse.json({ success: false, message: 'Username sudah digunakan, silakan pilih yang lain.' }, { status: 400 });
+        return NextResponse.json({ success: false, message: 'Username sudah digunakan.' }, { status: 400 });
       }
 
-      // Simpan akun baru ke Turso
-      await db.insert(users).values({
-        role: 'guru',
-        username,
-        password,
-        nama_lembaga,
+      await db.insert(Users).values({
+        Role: 'guru',
+        Username: username,
+        Password: password,
+        Sekolah: sekolah,
       });
 
       return NextResponse.json({ success: true, message: 'Pendaftaran berhasil!' });
@@ -29,25 +27,22 @@ export async function POST(request: Request) {
 
     // Logika Masuk (Login)
     if (action === 'login') {
-      // Bypass khusus untuk akun admin (karena form admin belum dibuatkan khusus)
       if (username === 'admin' && password === 'admin123') {
-        return NextResponse.json({ success: true, role: 'admin', nama_lembaga: 'Administrator' });
+        return NextResponse.json({ success: true, role: 'admin', sekolah: 'Administrator' });
       }
 
-      // Cek database Turso untuk akun guru
-      const user = await db.select().from(users).where(eq(users.username, username));
+      const user = await db.select().from(Users).where(eq(Users.Username, username));
       
-      if (user.length > 0 && user[0].password === password) {
-        return NextResponse.json({ success: true, role: user[0].role, nama_lembaga: user[0].nama_lembaga });
+      if (user.length > 0 && user[0].Password === password) {
+        return NextResponse.json({ success: true, role: user[0].Role, sekolah: user[0].Sekolah });
       } else {
         return NextResponse.json({ success: false, message: 'Username atau password salah.' }, { status: 401 });
       }
     }
 
     return NextResponse.json({ success: false, message: 'Aksi tidak valid.' }, { status: 400 });
-
   } catch (error) {
-    console.error('Database Error:', error);
-    return NextResponse.json({ success: false, message: 'Terjadi kesalahan pada server database.' }, { status: 500 });
+    console.error(error);
+    return NextResponse.json({ success: false, message: 'Terjadi kesalahan server.' }, { status: 500 });
   }
 }
