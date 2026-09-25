@@ -6,47 +6,50 @@ import { eq } from 'drizzle-orm';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, username, password, sekolah } = body; // 'sekolah' dari input form UI
+    const { action, username, password, nama } = body; 
 
+    // 1. LOGIKA PENDAFTARAN GURU (Sekolah)
     if (action === 'register') {
       const existingUser = await db.select().from(Users).where(eq(Users.Username, username));
       if (existingUser.length > 0) {
         return NextResponse.json({ success: false, message: 'Username sudah digunakan.' }, { status: 400 });
       }
 
-      // Generate ID string unik untuk tabel Users dan payments
+      // Membuat ID Unik
       const newUserId = `U${Date.now()}`;
       const newPaymentId = `P${Date.now()}`;
 
-      // Masukkan ke tabel Users
+      // A. Masukkan Akun Guru ke sheet Users
       await db.insert(Users).values({
         ID: newUserId,
         Role: 'guru',
         Username: username,
         Password: password,
-        Nama: sekolah, // Masukkan value 'sekolah' dari form ke kolom 'Nama' di Turso
+        Nama: nama, // Menyimpan Nama Sekolah
       });
 
-      // Buat entri awal di tabel payments
+      // B. Masukkan tagihan otomatis ke sheet payments
       await db.insert(payments).values({
         id: newPaymentId,
         guru_id: newUserId,
-        amount: 0,
+        amount: 0, // Akan di-update otomatis setelah guru upload siswa nanti
         status: 'pending'
       });
 
       return NextResponse.json({ success: true, message: 'Pendaftaran berhasil!' });
     }
 
+    // 2. LOGIKA LOGIN (Mendeteksi Admin / Guru / Siswa)
     if (action === 'login') {
       if (username === 'admin' && password === 'admin123') {
-        return NextResponse.json({ success: true, role: 'admin', sekolah: 'Administrator' });
+        return NextResponse.json({ success: true, role: 'admin', nama: 'Administrator' });
       }
 
       const user = await db.select().from(Users).where(eq(Users.Username, username));
       
       if (user.length > 0 && user[0].Password === password) {
-        return NextResponse.json({ success: true, role: user[0].Role, sekolah: user[0].Nama }); // Ambil dari kolom 'Nama'
+        // Otomatis mengarahkan ke dashboard yang benar sesuai rolenya (guru/siswa)
+        return NextResponse.json({ success: true, role: user[0].Role, nama: user[0].Nama });
       } else {
         return NextResponse.json({ success: false, message: 'Username atau password salah.' }, { status: 401 });
       }
