@@ -1,13 +1,14 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-export const users = sqliteTable('users', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  role: text('role').notNull(), // 'admin', 'guru', 'siswa'
-  username: text('username').notNull().unique(),
-  password: text('password').notNull(),
-  nama_lembaga: text('nama_lembaga'), // Khusus guru
+export const Users = sqliteTable('Users', {
+  ID: integer('ID').primaryKey({ autoIncrement: true }),
+  Username: text('Username').notNull().unique(),
+  Password: text('Password').notNull(),
+  Role: text('Role').notNull().default('guru'),
+  Sekolah: text('Sekolah'), 
 });
 
+// Biarkan tabel payments dan students (jika ada) tetap di bawahnya...
 export const payments = sqliteTable('payments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   guru_id: integer('guru_id').references(() => users.id),
