@@ -1,26 +1,25 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
+// Semua ID diubah menjadi text dan dihapus autoIncrement-nya untuk menyesuaikan Turso
 export const Users = sqliteTable('Users', {
-  ID: integer('ID').primaryKey({ autoIncrement: true }),
+  ID: text('ID').primaryKey(), // Tipe Text, seperti 'U12345'
   Username: text('Username').notNull().unique(),
   Password: text('Password').notNull(),
   Role: text('Role').notNull().default('guru'),
-  Sekolah: text('Sekolah'),
+  Nama: text('Nama'), // Di Turso Anda menggunakan 'Nama', bukan 'Sekolah'
 });
 
 export const payments = sqliteTable('payments', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  guru_id: integer('guru_id').references(() => Users.ID),
-  amount: integer('amount').notNull(),
+  id: text('id').primaryKey(),
+  guru_id: text('guru_id').references(() => Users.ID),
+  amount: integer('amount').notNull(), // Amount tetap integer
   method: text('method'), 
   status: text('status').notNull().default('pending'),
 });
 
-// Tabel students mungkin tidak lagi diperlukan jika siswa masuk ke tabel Users,
-// namun dibiarkan jika masih diperlukan untuk struktur data lain.
 export const students = sqliteTable('students', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  guru_id: integer('guru_id').references(() => Users.ID),
+  id: text('id').primaryKey(),
+  guru_id: text('guru_id').references(() => Users.ID),
   username_siswa: text('username_siswa').notNull(),
   password_siswa: text('password_siswa').notNull(),
   nama_siswa: text('nama_siswa').notNull(),
