@@ -4,43 +4,92 @@ import { useState } from 'react';
 import Image from 'next/image';
 
 export default function SinglePageApp() {
-  // Pengaturan State untuk mengontrol tampilan tanpa pindah URL
   const [view, setView] = useState('landing'); // 'landing', 'guru', 'admin'
   const [authMode, setAuthMode] = useState('login'); // 'login', 'register'
+  
+  // State untuk menyimpan data user yang sedang login & status loading
+  const [activeUser, setActiveUser] = useState({ namaLembaga: '' });
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  // Simulasi Login (Tanpa Database Sementara)
-  const handleLogin = (e: any) => {
+  // Fungsi Login ke Turso
+  const handleLogin = async (e: any) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMsg('');
+    
     const username = e.target.username.value.toLowerCase();
-    if (username === 'admin') {
-      setView('admin');
-    } else {
-      setView('guru');
+    const password = e.target.password.value;
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', username, password })
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        setActiveUser({ namaLembaga: data.nama_lembaga });
+        setView(data.role === 'admin' ? 'admin' : 'guru');
+      } else {
+        setErrorMsg(data.message);
+      }
+    } catch (err) {
+      setErrorMsg('Gagal terhubung ke server.');
     }
+    setLoading(false);
   };
 
-  const handleRegister = (e: any) => {
+  // Fungsi Register ke Turso
+  const handleRegister = async (e: any) => {
     e.preventDefault();
-    alert("Pendaftaran simulasi berhasil! Silakan masuk dengan akun yang dibuat.");
-    setAuthMode('login');
+    setLoading(true);
+    setErrorMsg('');
+
+    const nama_lembaga = e.target.nama_lembaga.value;
+    const username = e.target.username.value.toLowerCase();
+    const password = e.target.password.value;
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'register', username, password, nama_lembaga })
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        alert("Pendaftaran berhasil! Akun Anda telah tersimpan di database. Silakan masuk.");
+        setAuthMode('login');
+      } else {
+        setErrorMsg(data.message);
+      }
+    } catch (err) {
+      setErrorMsg('Gagal terhubung ke database.');
+    }
+    setLoading(false);
   };
 
   const handleLogout = () => {
     setView('landing');
+    setActiveUser({ namaLembaga: '' });
   };
 
   // ==========================================
   // TAMPILAN DASHBOARD GURU
   // ==========================================
   if (view === 'guru') {
-    const statusPembayaran = 'belum_bayar'; // Ganti ke 'lunas' untuk tes tampilan lunas
+    const statusPembayaran = 'belum_bayar'; 
     return (
       <div className="min-h-screen bg-slate-50">
         <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
           <div className="px-8 py-4 flex justify-between items-center max-w-7xl mx-auto">
             <h1 className="text-xl font-bold text-gray-800">Panel Guru</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500 hidden sm:block">Selamat datang, <strong className="text-[#116530]">Nama Lembaga</strong></span>
+              <span className="text-sm text-gray-500 hidden sm:block">Lembaga: <strong className="text-[#116530]">{activeUser.namaLembaga}</strong></span>
               <button onClick={handleLogout} className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 transition">Keluar</button>
             </div>
           </div>
@@ -104,10 +153,6 @@ export default function SinglePageApp() {
               <h3 className="text-xs font-bold text-gray-400 uppercase">Total Lembaga Aktif</h3>
               <p className="text-4xl font-black text-gray-800 mt-2">42</p>
             </div>
-            <div className="bg-gradient-to-br from-[#D4AF37] to-yellow-600 p-6 rounded-2xl shadow-md text-white">
-              <h3 className="text-xs font-bold text-yellow-100 uppercase mb-1">Perlu Persetujuan Pembayaran</h3>
-              <p className="text-5xl font-black mt-2">5</p>
-            </div>
           </div>
         </main>
       </div>
@@ -115,69 +160,14 @@ export default function SinglePageApp() {
   }
 
   // ==========================================
-  // TAMPILAN LANDING PAGE & AUTENTIKASI (DEFAULT)
+  // TAMPILAN LANDING PAGE & AUTENTIKASI
   // ==========================================
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 overflow-hidden">
       
-      {/* BAGIAN KIRI: PANEL LOGIN / REGISTER */}
-      <div className="w-full md:w-[450px] lg:w-[500px] bg-white shadow-2xl z-20 flex flex-col relative">
-        <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
-          
-          <div className="flex items-center gap-3 mb-10">
-            <Image src="https://lh3.googleusercontent.com/d/1SCvmdQxuqmX_f0gBaYt0Ob53Tws97Hnq" alt="Logo KKGMI" width={50} height={50} />
-            <h1 className="text-2xl font-black text-[#116530] tracking-tight">KKGMI SBY 10</h1>
-          </div>
-
-          {authMode === 'login' ? (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-500">
-              <h2 className="text-3xl font-black text-gray-800 mb-2">Masuk Panel</h2>
-              <p className="text-gray-500 text-sm mb-8">Masukkan username untuk mengelola Tryout.</p>
-              
-              <form onSubmit={handleLogin} className="space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username (Ketik 'admin' untuk Admin)</label>
-                  <input type="text" name="username" required className="w-full p-4 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#116530]/20 focus:border-[#116530] transition font-medium" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
-                  <input type="password" name="password" required className="w-full p-4 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#116530]/20 focus:border-[#116530] transition" />
-                </div>
-                <button type="submit" className="w-full bg-[#116530] text-white font-bold py-4 rounded-xl hover:bg-[#0b421f] transition shadow-lg shadow-green-900/20">MASUK SISTEM</button>
-              </form>
-              
-              <p className="mt-8 text-sm text-gray-600">Lembaga belum terdaftar? <button onClick={() => setAuthMode('register')} className="text-[#D4AF37] font-bold hover:underline">Daftar sekarang</button></p>
-            </div>
-          ) : (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-              <h2 className="text-3xl font-black text-gray-800 mb-2">Pendaftaran</h2>
-              <p className="text-gray-500 text-sm mb-8">Daftarkan lembaga Anda untuk mengikuti Tryout.</p>
-              
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nama Lembaga</label>
-                  <input type="text" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#116530] transition text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username Administrator</label>
-                  <input type="text" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#116530] transition text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
-                  <input type="password" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#116530] transition text-sm" />
-                </div>
-                <button type="submit" className="w-full bg-[#D4AF37] text-[#116530] font-bold py-4 rounded-xl hover:bg-yellow-500 transition shadow-lg mt-2">DAFTAR LEMBAGA</button>
-              </form>
-              
-              <p className="mt-8 text-sm text-gray-600">Sudah memiliki akun? <button onClick={() => setAuthMode('login')} className="text-[#116530] font-bold hover:underline">Masuk ke sistem</button></p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* BAGIAN KANAN: KONTEN PROMOSI EKSKLUSIF */}
+      {/* BAGIAN KIRI: KONTEN PROMOSI EKSKLUSIF (Pindah ke Kiri) */}
       <div className="flex-1 bg-gradient-to-br from-[#116530] to-[#0b421f] text-white p-10 md:p-20 flex flex-col justify-center relative">
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#D4AF37] opacity-10 rounded-full blur-[100px]"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#D4AF37] opacity-10 rounded-full blur-[100px]"></div>
         
         <div className="max-w-2xl relative z-10">
           <span className="inline-block px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-yellow-300 font-semibold text-sm mb-6 border border-white/20">
@@ -200,6 +190,72 @@ export default function SinglePageApp() {
               <p className="text-sm text-green-100">Hasil Analisis Presisi</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* BAGIAN KANAN: PANEL LOGIN / REGISTER (Pindah ke Kanan) */}
+      <div className="w-full md:w-[450px] lg:w-[500px] bg-white shadow-2xl z-20 flex flex-col relative">
+        <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
+          
+          <div className="flex items-center gap-3 mb-10">
+            <Image src="https://lh3.googleusercontent.com/d/1SCvmdQxuqmX_f0gBaYt0Ob53Tws97Hnq" alt="Logo KKGMI" width={50} height={50} />
+            <h1 className="text-2xl font-black text-[#116530] tracking-tight">KKGMI SBY 10</h1>
+          </div>
+
+          {/* Menampilkan pesan error jika ada */}
+          {errorMsg && (
+            <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl font-medium">
+              {errorMsg}
+            </div>
+          )}
+
+          {authMode === 'login' ? (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+              <h2 className="text-3xl font-black text-gray-800 mb-2">Masuk Panel</h2>
+              <p className="text-gray-500 text-sm mb-8">Masukkan username untuk mengelola Tryout.</p>
+              
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
+                  <input type="text" name="username" required className="w-full p-4 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#116530]/20 focus:border-[#116530] transition font-medium" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
+                  <input type="password" name="password" required className="w-full p-4 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#116530]/20 focus:border-[#116530] transition" />
+                </div>
+                <button type="submit" disabled={loading} className="w-full bg-[#116530] text-white font-bold py-4 rounded-xl hover:bg-[#0b421f] transition shadow-lg shadow-green-900/20 disabled:opacity-70">
+                  {loading ? 'MEMPROSES...' : 'MASUK SISTEM'}
+                </button>
+              </form>
+              
+              <p className="mt-8 text-sm text-gray-600">Lembaga belum terdaftar? <button onClick={() => {setAuthMode('register'); setErrorMsg('');}} className="text-[#D4AF37] font-bold hover:underline">Daftar sekarang</button></p>
+            </div>
+          ) : (
+            <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+              <h2 className="text-3xl font-black text-gray-800 mb-2">Pendaftaran</h2>
+              <p className="text-gray-500 text-sm mb-8">Daftarkan lembaga Anda ke sistem database kami.</p>
+              
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nama Lembaga (Sesuai KKGMI)</label>
+                  <input type="text" name="nama_lembaga" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#116530] transition text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username Administrator</label>
+                  <input type="text" name="username" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#116530] transition text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
+                  <input type="password" name="password" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#116530] transition text-sm" />
+                </div>
+                <button type="submit" disabled={loading} className="w-full bg-[#D4AF37] text-[#116530] font-bold py-4 rounded-xl hover:bg-yellow-500 transition shadow-lg mt-2 disabled:opacity-70">
+                  {loading ? 'MENYIMPAN DATA...' : 'DAFTAR LEMBAGA'}
+                </button>
+              </form>
+              
+              <p className="mt-8 text-sm text-gray-600">Sudah memiliki akun? <button onClick={() => {setAuthMode('login'); setErrorMsg('');}} className="text-[#116530] font-bold hover:underline">Masuk ke sistem</button></p>
+            </div>
+          )}
         </div>
       </div>
       
