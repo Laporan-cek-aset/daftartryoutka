@@ -8,10 +8,9 @@ export const Users = sqliteTable('Users', {
   Sekolah: text('Sekolah'), 
 });
 
-// Biarkan tabel payments dan students (jika ada) tetap di bawahnya...
 export const payments = sqliteTable('payments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  guru_id: integer('guru_id').references(() => users.id),
+  guru_id: integer('guru_id').references(() => Users.ID),
   amount: integer('amount').notNull(),
   method: text('method'), // 'Bank' atau 'ShopeePay'
   status: text('status').notNull().default('pending'), // 'pending', 'approved'
@@ -19,7 +18,7 @@ export const payments = sqliteTable('payments', {
 
 export const students = sqliteTable('students', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  guru_id: integer('guru_id').references(() => users.id),
+  guru_id: integer('guru_id').references(() => Users.ID),
   username_siswa: text('username_siswa').notNull(),
   password_siswa: text('password_siswa').notNull(),
   nama_siswa: text('nama_siswa').notNull(),
