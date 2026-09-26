@@ -3,13 +3,14 @@ import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 export const Users = sqliteTable('Users', {
   ID: text('ID').primaryKey(),
   Nama: text('Nama').notNull(),
-  Email: text('Email').notNull().unique(),
+  Email: text('Email'),
   Phone: text('Phone'),
   Username: text('Username').notNull().unique(),
   Password: text('Password').notNull(),
   Role: text('Role').notNull().default('guru'),
-  CreatedAt: text('CreatedAt').default(new Date().toISOString()),
   Status: text('Status').notNull().default('pending'), // pending, active, rejected
+  CreatedAt: text('CreatedAt'),
+  UpdatedAt: text('UpdatedAt'),
 });
 
 export const payments = sqliteTable('payments', {
@@ -18,7 +19,8 @@ export const payments = sqliteTable('payments', {
   amount: integer('amount').notNull(),
   method: text('method'),
   status: text('status').notNull().default('pending'),
-  created_at: text('created_at').default(new Date().toISOString()),
+  created_at: text('created_at'),
+  updated_at: text('updated_at'),
 });
 
 export const participants = sqliteTable('participants', {
@@ -28,7 +30,7 @@ export const participants = sqliteTable('participants', {
   nisn: text('nisn'),
   kelas: text('kelas'),
   jenis_kelamin: text('jenis_kelamin'),
-  created_at: text('created_at').default(new Date().toISOString()),
+  created_at: text('created_at'),
 });
 
 export const exam_results = sqliteTable('exam_results', {
