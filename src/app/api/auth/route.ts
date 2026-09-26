@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../lib/turso';
-import { Users, payments } from '../../../lib/schema';
+import { db, tursoClient } from '../../../lib/turso';
+import { Users } from '../../../lib/schema';
 import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
@@ -8,36 +8,29 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action, username, password, nama } = body; 
 
-    // 1. LOGIKA PENDAFTARAN GURU (Sekolah)
     if (action === 'register') {
+      // 1. Cek apakah username sudah ada (Pakai Drizzle)
       const existingUser = await db.select().from(Users).where(eq(Users.Username, username));
       if (existingUser.length > 0) {
         return NextResponse.json({ success: false, message: 'Username sudah digunakan.' }, { status: 400 });
       }
 
-      // Membuat ID Unik untuk Guru
       const newUserId = `U${Date.now()}`;
 
-      // A. Masukkan Akun Guru ke sheet Users
-      await db.insert(Users).values({
-        ID: newUserId,
-        Role: 'guru',
-        Username: username,
-        Password: password,
-        Nama: nama,
+      // 2. INSERT MANUAL MENGGUNAKAN NATIVE CLIENT (Bypass Drizzle Error)
+      await tursoClient.execute({
+        sql: "INSERT INTO Users (ID, Role, Username, Password, Nama) VALUES (?, ?, ?, ?, ?)",
+        args: [newUserId, "guru", username, password, nama]
       });
 
-      // B. Masukkan tagihan otomatis ke sheet payments
-      await db.insert(payments).values({
-        guru_id: newUserId,
-        amount: 0,
-        status: 'pending'
+      await tursoClient.execute({
+        sql: "INSERT INTO payments (guru_id, amount, status) VALUES (?, ?, ?)",
+        args: [newUserId, 0, "pending"]
       });
 
       return NextResponse.json({ success: true, message: 'Pendaftaran berhasil!' });
     }
 
-    // 2. LOGIKA LOGIN (Mendeteksi Admin / Guru / Siswa otomatis)
     if (action === 'login') {
       if (username === 'admin' && password === 'admin123') {
         return NextResponse.json({ success: true, role: 'admin', nama: 'Administrator' });
@@ -55,7 +48,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: 'Aksi tidak valid.' }, { status: 400 });
   } catch (error: any) {
     console.error("Database Error: ", error);
-    // PERBAIKAN: Memaksa Vercel mengirimkan error ASLI dari Turso ke layar HP/Laptop Anda
     return NextResponse.json({ success: false, message: `DETAIL ERROR: ${error.message}` }, { status: 500 });
   }
 }
