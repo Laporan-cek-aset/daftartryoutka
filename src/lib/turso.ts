@@ -1,17 +1,17 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { createClient } from '@libsql/client/web';
+import { drizzle } from 'drizzle-orm/libsql';
+import * as schema from './schema';
 
-export const Users = sqliteTable('Users', {
-  ID: text('ID').primaryKey(),
-  Nama: text('Nama'),
-  Username: text('Username').notNull().unique(),
-  Password: text('Password').notNull(),
-  Role: text('Role').notNull().default('guru'),
-});
+// Fungsi ini yang dicari oleh Vercel (pastikan ada kata 'export')
+export function getTursoClient() {
+  const rawUrl = process.env.TURSO_DATABASE_URL || process.env.TURSO_URL || '';
+  const safeUrl = rawUrl.replace('libsql://', 'https://');
+  const authToken = process.env.TURSO_AUTH_TOKEN || '';
 
-export const payments = sqliteTable('payments', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  guru_id: text('guru_id').references(() => Users.ID),
-  amount: integer('amount').notNull(),
-  method: text('method'),
-  status: text('status').notNull().default('pending'),
-});
+  return createClient({
+    url: safeUrl,
+    authToken: authToken,
+  });
+}
+
+export const db = drizzle(getTursoClient(), { schema });
