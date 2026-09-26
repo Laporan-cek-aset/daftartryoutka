@@ -45,7 +45,7 @@ export default function SinglePageApp() {
     setLoading(true);
     setErrorMsg('');
 
-    const nama = e.target.sekolah.value; 
+    const nama = e.target.nama.value; 
     const username = e.target.username.value.toLowerCase();
     const password = e.target.password.value;
 
@@ -59,13 +59,13 @@ export default function SinglePageApp() {
       const data = await res.json();
       
       if (data.success) {
-        alert("Pendaftaran berhasil! Akun Anda telah tersimpan di database. Silakan masuk.");
+        alert("Pendaftaran berhasil! Akun Anda telah tersimpan. Silakan masuk.");
         setAuthMode('login');
       } else {
         setErrorMsg(data.message);
       }
     } catch (err) {
-      setErrorMsg('Gagal terhubung ke database. Pastikan koneksi Turso stabil.');
+      setErrorMsg('Gagal terhubung ke database. Pastikan internet stabil.');
     }
     setLoading(false);
   };
@@ -75,6 +75,7 @@ export default function SinglePageApp() {
     setActiveUser({ nama: '' });
   };
 
+  // --- TAMPILAN DASHBOARD GURU ---
   if (view === 'guru') {
     return (
       <div className="min-h-screen bg-slate-50">
@@ -93,13 +94,14 @@ export default function SinglePageApp() {
         <main className="p-8 max-w-5xl mx-auto">
           <div className="mb-8 border-l-4 border-[#116530] pl-4">
             <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard Akademik</h2>
-            <p className="text-gray-500 mt-1">Kelola pendaftaran tryout, pembayaran, dan akses ujian siswa Anda di satu tempat.</p>
+            <p className="text-gray-500 mt-1">Selamat datang, {activeUser.nama}. Kelola pendaftaran tryout dan akses ujian siswa Anda di sini.</p>
           </div>
         </main>
       </div>
     );
   }
 
+  // --- TAMPILAN DASHBOARD ADMIN ---
   if (view === 'admin') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
@@ -117,59 +119,62 @@ export default function SinglePageApp() {
         </aside>
         <main className="flex-1 p-8 md:p-12">
           <h1 className="text-3xl font-black text-gray-800 tracking-tight mb-8">Overview Panel Admin</h1>
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between max-w-sm">
+             <div>
+               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lembaga Terdaftar</h3>
+               <p className="text-4xl font-black text-gray-800 mt-2">Data Aktif</p>
+             </div>
+             <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl">🏫</div>
+          </div>
         </main>
       </div>
     );
   }
 
+  // --- TAMPILAN LANDING PAGE & LOGIN ---
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white overflow-hidden">
       <div className="flex-1 bg-gradient-to-br from-[#116530] to-[#0b421f] text-white p-10 md:p-20 flex flex-col justify-center relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#D4AF37] opacity-10 rounded-full blur-[120px]"></div>
         <div className="max-w-2xl relative z-10">
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-[1.1] tracking-tight">Tryout TKA <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-yellow-200">Lebih Terukur</span></h2>
-          <p className="text-lg md:text-xl text-green-50/90 mb-12 leading-relaxed max-w-xl font-light">Tingkatkan kesiapan akademik siswa madrasah dengan platform evaluasi yang presisi, cepat, dan antarmuka mudah dipahami oleh siswa tingkat MI.</p>
+          <h2 className="text-5xl md:text-6xl font-black mb-6 leading-tight tracking-tight">Tryout TKA <br /><span className="text-yellow-400">Lebih Terukur</span></h2>
+          <p className="text-lg md:text-xl text-green-50 mb-12 opacity-90">Tingkatkan kesiapan akademik siswa madrasah dengan platform evaluasi yang presisi.</p>
         </div>
       </div>
 
-      <div className="w-full md:w-[450px] lg:w-[500px] bg-white z-20 flex flex-col relative shadow-[-20px_0_40px_rgba(0,0,0,0.1)]">
+      <div className="w-full md:w-[450px] lg:w-[500px] bg-white z-20 flex flex-col relative shadow-2xl">
         <div className="flex-1 p-8 md:p-14 flex flex-col justify-center">
           <div className="flex items-center gap-4 mb-12">
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm"><Image src="https://lh3.googleusercontent.com/d/1SCvmdQxuqmX_f0gBaYt0Ob53Tws97Hnq" alt="Logo KKGMI" width={45} height={45} className="drop-shadow-sm" /></div>
+            <Image src="https://lh3.googleusercontent.com/d/1SCvmdQxuqmX_f0gBaYt0Ob53Tws97Hnq" alt="Logo" width={45} height={45} />
             <div>
-              <h1 className="text-xl font-black text-[#116530] tracking-tight leading-none">KKGMI</h1>
-              <h1 className="text-xl font-black text-[#D4AF37] tracking-tight">SBY 10</h1>
+              <h1 className="text-xl font-black text-[#116530]">KKGMI</h1>
+              <h1 className="text-xl font-black text-[#D4AF37]">SBY 10</h1>
             </div>
           </div>
 
           {errorMsg && (
-             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-2xl font-medium flex items-start gap-3"><span className="text-lg">⚠️</span><p className="mt-0.5">{errorMsg}</p></div>
+             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl font-medium">⚠️ {errorMsg}</div>
           )}
 
           {authMode === 'login' ? (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-              <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">Selamat Datang</h2>
-              <p className="text-gray-500 text-sm mb-8">Masuk ke panel untuk mengelola Tryout Madrasah Anda.</p>
-              
-              <form onSubmit={handleLogin} className="space-y-5">
-                <div><label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Username</label><input type="text" name="username" required className="w-full p-4 bg-slate-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#116530]/10 focus:border-[#116530] transition font-medium text-gray-800" /></div>
-                <div><label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label><input type="password" name="password" required className="w-full p-4 bg-slate-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#116530]/10 focus:border-[#116530] transition text-gray-800" /></div>
-                <button type="submit" disabled={loading} className="w-full bg-[#116530] text-white font-bold py-4 rounded-2xl hover:bg-[#0b421f] transition shadow-xl shadow-green-900/20 disabled:opacity-70 transform hover:-translate-y-0.5 mt-2">{loading ? 'MEMPROSES...' : 'MASUK SISTEM'}</button>
+            <div className="animate-in fade-in duration-500">
+              <h2 className="text-3xl font-black text-gray-900 mb-2">Selamat Datang</h2>
+              <form onSubmit={handleLogin} className="space-y-5 mt-8">
+                <input type="text" name="username" placeholder="Username..." required className="w-full p-4 bg-slate-50 border rounded-xl" />
+                <input type="password" name="password" placeholder="Password..." required className="w-full p-4 bg-slate-50 border rounded-xl" />
+                <button type="submit" disabled={loading} className="w-full bg-[#116530] text-white font-bold py-4 rounded-xl">{loading ? 'PROSES...' : 'MASUK'}</button>
               </form>
-              <p className="mt-10 text-sm text-gray-500 text-center">Belum mendaftarkan lembaga? <br/><button onClick={() => {setAuthMode('register'); setErrorMsg('');}} className="text-[#D4AF37] font-bold hover:underline mt-1">Daftar Akun Baru</button></p>
+              <p className="mt-8 text-center text-sm">Belum ada akun? <button onClick={() => setAuthMode('register')} className="text-yellow-600 font-bold">Daftar</button></p>
             </div>
           ) : (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-500">
-              <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">Daftar Lembaga</h2>
-              <p className="text-gray-500 text-sm mb-8">Buat akun untuk bergabung ke sistem Tryout KKGMI.</p>
-              
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div><label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Nama Lembaga / Sekolah</label><input type="text" name="sekolah" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#116530]/10 focus:border-[#116530] transition text-sm text-gray-800 font-medium" /></div>
-                <div><label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Username Admin</label><input type="text" name="username" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#116530]/10 focus:border-[#116530] transition text-sm text-gray-800 font-medium" /></div>
-                <div><label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label><input type="password" name="password" required className="w-full p-3.5 bg-slate-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#116530]/10 focus:border-[#116530] transition text-sm text-gray-800" /></div>
-                <button type="submit" disabled={loading} className="w-full bg-[#D4AF37] text-[#116530] font-black py-4 rounded-2xl hover:bg-yellow-400 transition shadow-xl shadow-yellow-500/20 mt-4 disabled:opacity-70 transform hover:-translate-y-0.5">{loading ? 'MENYIMPAN DATA...' : 'BUAT AKUN SEKARANG'}</button>
+            <div className="animate-in fade-in duration-500">
+              <h2 className="text-3xl font-black text-gray-900 mb-2">Daftar Lembaga</h2>
+              <form onSubmit={handleRegister} className="space-y-4 mt-8">
+                <input type="text" name="nama" placeholder="Nama Lembaga/Sekolah" required className="w-full p-4 bg-slate-50 border rounded-xl" />
+                <input type="text" name="username" placeholder="Username" required className="w-full p-4 bg-slate-50 border rounded-xl" />
+                <input type="password" name="password" placeholder="Password" required className="w-full p-4 bg-slate-50 border rounded-xl" />
+                <button type="submit" disabled={loading} className="w-full bg-yellow-500 text-white font-bold py-4 rounded-xl">{loading ? 'PROSES...' : 'DAFTAR'}</button>
               </form>
-              <p className="mt-10 text-sm text-gray-500 text-center border-t border-gray-100 pt-6">Sudah memiliki akun? <button onClick={() => {setAuthMode('login'); setErrorMsg('');}} className="text-[#116530] font-bold hover:underline ml-1">Masuk di sini</button></p>
+              <p className="mt-8 text-center text-sm">Sudah ada akun? <button onClick={() => setAuthMode('login')} className="text-[#116530] font-bold">Masuk</button></p>
             </div>
           )}
         </div>
