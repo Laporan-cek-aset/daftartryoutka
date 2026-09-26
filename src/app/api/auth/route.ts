@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       // A. Masukkan Akun Guru ke sheet Users
       await db.insert(Users).values({
         ID: newUserId,
-        Role: 'guru', // Role diset sebagai guru
+        Role: 'guru',
         Username: username,
         Password: password,
         Nama: nama,
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       // B. Masukkan tagihan otomatis ke sheet payments
       await db.insert(payments).values({
         guru_id: newUserId,
-        amount: 0, // Nominal dihitung nanti saat guru upload siswa
+        amount: 0,
         status: 'pending'
       });
 
@@ -55,6 +55,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: 'Aksi tidak valid.' }, { status: 400 });
   } catch (error: any) {
     console.error("Database Error: ", error);
-    return NextResponse.json({ success: false, message: 'Terjadi kesalahan server database.' }, { status: 500 });
+    // PERBAIKAN: Memaksa Vercel mengirimkan error ASLI dari Turso ke layar HP/Laptop Anda
+    return NextResponse.json({ success: false, message: `DETAIL ERROR: ${error.message}` }, { status: 500 });
   }
 }
